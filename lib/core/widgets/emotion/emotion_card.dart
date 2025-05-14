@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// A card widget for displaying emotion scores
 class EmotionCard extends StatelessWidget {
   final String label;
   final double score;

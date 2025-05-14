@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import '../widgets/emotion_chart.dart';
-import '../widgets/trend_chart.dart';
-import '../widgets/analytics_card.dart';
-import '../models/analytics_data.dart';
+import '../core/core.dart';
 import 'dart:math' as math;
+import '../models/analytics_data.dart';
 
 class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
@@ -16,7 +15,6 @@ class _DashboardPageState extends State<DashboardPage>
   late TabController _tabController;
   bool _isExpanded = false;
   String _selectedTimeRange = 'Today';
-  int _selectedTabIndex = 0;
 
   // Example data
   final Map<String, double> _currentEmotionData = {
@@ -160,35 +158,6 @@ class _DashboardPageState extends State<DashboardPage>
   ];
 
   // Key insights
-  final List<EmotionInsight> _insights = [
-    EmotionInsight(
-      title: 'Frustration Spike Detected',
-      description:
-          'Customer showed signs of frustration when discussing pricing options. Consider offering a discount.',
-      icon: Icons.warning,
-      color: Colors.orange,
-      timestamp: '10:15 AM',
-      onAction: () {},
-    ),
-    EmotionInsight(
-      title: 'Positive Response',
-      description:
-          'Customer responded very positively to the premium features demonstration.',
-      icon: Icons.thumb_up,
-      color: Colors.green,
-      timestamp: '10:25 AM',
-      onAction: () {},
-    ),
-    EmotionInsight(
-      title: 'Confusion Period',
-      description:
-          'Customer seemed confused about the subscription model. Consider simplifying explanation.',
-      icon: Icons.help,
-      color: Colors.blue,
-      timestamp: '10:20 AM',
-      onAction: () {},
-    ),
-  ];
 
   @override
   void initState() {
@@ -286,19 +255,27 @@ class _DashboardPageState extends State<DashboardPage>
         bottom:
             _isLoading
                 ? null
-                : TabBar(
-                  controller: _tabController,
-                  tabs: [
-                    Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
-                    Tab(icon: Icon(Icons.history), text: 'History'),
-                    Tab(icon: Icon(Icons.lightbulb_outline), text: 'Insights'),
-                    Tab(icon: Icon(Icons.people), text: 'Segments'),
-                  ],
-                  onTap: (index) {
-                    setState(() {
-                      _selectedTabIndex = index;
-                    });
-                  },
+                : PreferredSize(
+                  preferredSize: Size.fromHeight(kToolbarHeight),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      tabs: [
+                        Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
+                        Tab(icon: Icon(Icons.history), text: 'History'),
+                        Tab(
+                          icon: Icon(Icons.lightbulb_outline),
+                          text: 'Insights',
+                        ),
+                        Tab(icon: Icon(Icons.people), text: 'Segments'),
+                      ],
+                      onTap: (index) {
+                        setState(() {});
+                      },
+                    ),
+                  ),
                 ),
       ),
       body:
@@ -1170,11 +1147,11 @@ class _DashboardPageState extends State<DashboardPage>
                               SizedBox(height: 8),
                               Expanded(
                                 child: EmotionChart(
-                                  emotionData:
-                                      _emotionHistory[index]['emotions'],
-                                  showLabels: false,
-                                  height: 100,
-                                  width: 100,
+                                  emotions:
+                                      _emotionHistory[index]['emotions']
+                                          as Map<String, double>,
+                                  colors: _emotionColors,
+                                  size: 100,
                                 ),
                               ),
                               SizedBox(height: 8),
@@ -1772,9 +1749,9 @@ class _DashboardPageState extends State<DashboardPage>
                       flex: 2,
                       child: Center(
                         child: EmotionChart(
-                          emotionData: _currentEmotionData,
-                          height: 180,
-                          width: 180,
+                          emotions: _currentEmotionData,
+                          colors: _emotionColors,
+                          size: 180,
                         ),
                       ),
                     ),

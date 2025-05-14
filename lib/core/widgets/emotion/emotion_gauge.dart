@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// A gauge widget for visualizing emotion intensity
 class EmotionGauge extends StatelessWidget {
   final String label;
   final double value;

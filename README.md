@@ -2,6 +2,8 @@
 
 EmoSense AI is a Flutter application designed to detect and analyze emotions in customer service interactions. The app provides real-time emotion detection, historical data analysis, and AI-powered recommendations to improve customer service quality.
 
+![EmoSense AI Logo](assets/app_icon.svg)
+
 ## Features
 
 - **Real-time Emotion Detection**: Analyze customer emotions during live conversations
@@ -77,3 +79,62 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Inspired by advancements in emotion AI and customer experience management
 - Built with Flutter and Material Design principles
+
+## Project Structure
+
+### Import Guidelines
+
+This project uses a centralized import approach to simplify importing widgets and packages across the app.
+
+#### Core Imports
+
+For UI components and Flutter packages, import the core.dart file:
+
+```dart
+import '../core/core.dart';
+```
+
+This will give you access to:
+- Flutter Material package
+- Flutter Services package
+- Provider package
+- All custom widgets organized by category
+
+#### Models
+
+Models should be imported directly:
+
+```dart
+import '../models/analytics_data.dart';
+```
+
+#### Providers
+
+Providers should be imported directly:
+
+```dart
+import '../presentation/providers/theme_provider.dart';
+```
+
+### Folder Structure
+
+The project follows a clean architecture approach:
+
+- **lib/core**: Core components of the application
+  - **widgets/**: All reusable widgets organized by feature
+  - **models/**: Data models 
+  - **utils/**: Utility functions and helpers
+
+- **lib/presentation**: UI layer 
+  - **providers/**: State management providers
+  - **pages/**: Full screen pages
+
+- **lib/screens**: Screen implementations
+
+- **lib/services**: Business logic and services
+
+## Getting Started
+
+1. Clone the repository
+2. Run `flutter pub get` to install dependencies
+3. Run `flutter run` to start the application

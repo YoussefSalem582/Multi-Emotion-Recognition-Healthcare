@@ -1,13 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import '../core/core.dart';
 import 'dart:math' as math;
-import 'dart:ui';
-
-// Import ThemeProvider
-import '../main.dart';
+import '../presentation/providers/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -206,7 +203,44 @@ class _HomePageState extends State<HomePage>
           IconButton(
             icon: Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              // Show settings dialog
+              // Show settings dialog or navigate to app icon demo
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: Text('Settings'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: Icon(Icons.dark_mode),
+                            title: Text('Dark Mode'),
+                            trailing: Switch(
+                              value: isDarkMode,
+                              onChanged: (value) {
+                                themeProvider.toggleTheme(value);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            leading: Icon(Icons.image),
+                            title: Text('App Icon Demo'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.pushNamed(context, '/appIconDemo');
+                            },
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Close'),
+                        ),
+                      ],
+                    ),
+              );
             },
           ),
         ],
@@ -494,7 +528,7 @@ class _HomePageState extends State<HomePage>
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 4),
-              Container(
+              SizedBox(
                 height: 36,
                 child: Text(
                   subtitle,
@@ -548,7 +582,7 @@ class _HomePageState extends State<HomePage>
           ],
         ),
         SizedBox(height: 16),
-        Container(
+        SizedBox(
           height: 180,
           child: PageView.builder(
             controller: _pageController,

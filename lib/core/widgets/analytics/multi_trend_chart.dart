@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import '../../utils/overflow_helper.dart';
+import '../../utils/responsive_helper.dart';
+import '../common/overflow_warning_fixer.dart';
 
 /// A chart widget for displaying multiple emotion trends
 class MultiTrendChart extends StatelessWidget {
@@ -21,29 +23,45 @@ class MultiTrendChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showLegend) _buildLegend(),
+        if (showLegend) _buildLegend(context),
         SizedBox(height: showLegend ? 16 : 0),
-        Container(
-          height: height,
-          width: double.infinity,
-          child: CustomPaint(
-            painter: _MultiTrendChartPainter(
-              dataSeries: dataSeries,
-              colors: colors,
-            ),
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Set a minimum width that ensures no overflow
+            final minChartWidth =
+                constraints.maxWidth < 300 ? 400.0 : constraints.maxWidth;
+
+            // Use OverflowWarningFixer to handle potential overflow
+            return OverflowWarningFixer(
+              axis: Axis.horizontal,
+              child: SizedBox(
+                width: minChartWidth,
+                height: height,
+                child: CustomPaint(
+                  size: Size(minChartWidth, height),
+                  painter: _MultiTrendChartPainter(
+                    dataSeries: dataSeries,
+                    colors: colors,
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildLegend() {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      children:
-          dataSeries.keys.map((name) {
-            return Row(
+  Widget _buildLegend(BuildContext context) {
+    // Use responsive design for legend display
+    final isSmallScreen = ResponsiveHelper.isSmallScreen(context);
+
+    // On small screens, use a scrollable row
+    final legendItems =
+        dataSeries.keys.map((name) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
@@ -55,10 +73,21 @@ class MultiTrendChart extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 4),
-                Text(name),
+                // Use text overflow handling
+                OverflowHelper.handleLongText(
+                  text: name,
+                  style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                  maxLines: 1,
+                ),
               ],
-            );
-          }).toList(),
+            ),
+          );
+        }).toList();
+
+    // Use OverflowWarningFixer for legend horizontal scrolling
+    return OverflowWarningFixer(
+      axis: Axis.horizontal,
+      child: Row(mainAxisSize: MainAxisSize.min, children: legendItems),
     );
   }
 }

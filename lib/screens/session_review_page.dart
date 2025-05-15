@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/session.dart';
-import '../services/session_service.dart';
 
 class SessionReviewPage extends StatefulWidget {
   @override

@@ -6,6 +6,7 @@ import '../../screens/video_page.dart';
 import '../../screens/main_screen.dart';
 import '../../presentation/pages/app_icon_demo.dart';
 import '../../presentation/pages/video_analysis_page.dart';
+import '../../screens/enhanced_video_analysis_page.dart';
 
 // Named routes
 class AppRoutes {
@@ -16,6 +17,7 @@ class AppRoutes {
   static const String main = '/main';
   static const String appIconDemo = '/appIconDemo';
   static const String videoAnalysis = '/videoAnalysis';
+  static const String enhancedVideoAnalysis = '/enhancedVideoAnalysis';
 }
 
 Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -53,6 +55,11 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
     case AppRoutes.videoAnalysis:
       return MaterialPageRoute(
         builder: (context) => const VideoAnalysisPage(),
+        settings: settings,
+      );
+    case AppRoutes.enhancedVideoAnalysis:
+      return MaterialPageRoute(
+        builder: (context) => const EnhancedVideoAnalysisPage(),
         settings: settings,
       );
     default:

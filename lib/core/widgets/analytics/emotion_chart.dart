@@ -1,84 +1,109 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../../utils/app_colors.dart';
+import '../../utils/responsive_helper.dart';
+import '../common/safe_area_container.dart';
 
-/// A chart widget for displaying emotion distribution
+/// A pie chart widget for displaying emotion data
 class EmotionChart extends StatelessWidget {
   final Map<String, double> emotions;
-  final Map<String, Color> colors;
+  final Map<String, Color>? colors;
   final double size;
+  final bool showOverflowWarning;
 
   const EmotionChart({
     Key? key,
     required this.emotions,
-    required this.colors,
-    this.size = 200,
+    this.colors,
+    this.size = 150,
+    this.showOverflowWarning = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: size,
-          height: size,
-          child: CustomPaint(
-            painter: _EmotionChartPainter(emotions: emotions, colors: colors),
-          ),
-        ),
-        SizedBox(height: 16),
-        _buildLegend(),
-      ],
-    );
-  }
+    // Get screen size to determine constraints
+    final isSmallScreen = ResponsiveHelper.isSmallScreen(context);
 
-  Widget _buildLegend() {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      alignment: WrapAlignment.center,
-      children:
-          emotions.keys.map((emotion) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colors[emotion],
+    // Calculate appropriate chart size
+    final chartSize = isSmallScreen ? math.min(size, 120.0) : size;
+
+    // Calculate total value for percentage
+    final double total = emotions.values.fold(0, (sum, val) => sum + val);
+
+    return SafeAreaContainer(
+      width: chartSize,
+      height: chartSize,
+      child: Stack(
+        children: [
+          // Pie chart
+          CustomPaint(
+            size: Size(chartSize, chartSize),
+            painter: _EmotionPieChartPainter(
+              emotions: emotions,
+              colors: colors,
+              total: total,
+            ),
+          ),
+
+          // Overflow warning if enabled
+          if (showOverflowWarning)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 2.0),
+                color: Colors.amber.withOpacity(0.8),
+                child: Center(
+                  child: Text(
+                    'BOTTOM OVERFLOWED BY 41 PIXELS',
+                    style: TextStyle(
+                      fontSize: 10.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
-                SizedBox(width: 4),
-                Text('$emotion (${(emotions[emotion]! * 100).toInt()}%)'),
-              ],
-            );
-          }).toList(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
 
-class _EmotionChartPainter extends CustomPainter {
+class _EmotionPieChartPainter extends CustomPainter {
   final Map<String, double> emotions;
-  final Map<String, Color> colors;
+  final Map<String, Color>? colors;
+  final double total;
 
-  _EmotionChartPainter({required this.emotions, required this.colors});
+  _EmotionPieChartPainter({
+    required this.emotions,
+    this.colors,
+    required this.total,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Calculate center and radius
     final center = Offset(size.width / 2, size.height / 2);
     final radius = math.min(size.width, size.height) / 2;
 
+    // Sort emotions by value, highest first
+    final sortedEmotions =
+        emotions.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    // Draw pie chart
     double startAngle = -math.pi / 2; // Start from top
 
-    emotions.forEach((emotion, value) {
-      final sweepAngle = 2 * math.pi * value;
+    for (var emotion in sortedEmotions) {
+      final sweepAngle = 2 * math.pi * (emotion.value / total);
+
       final paint =
           Paint()
             ..style = PaintingStyle.fill
-            ..color = colors[emotion] ?? Colors.grey;
+            ..color = _getColorForEmotion(emotion.key);
 
-      // Draw arc
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
@@ -87,47 +112,44 @@ class _EmotionChartPainter extends CustomPainter {
         paint,
       );
 
-      // Draw label if segment is large enough
-      if (value >= 0.1) {
-        final labelAngle = startAngle + (sweepAngle / 2);
-        final labelRadius = radius * 0.7;
-        final labelX = center.dx + labelRadius * math.cos(labelAngle);
-        final labelY = center.dy + labelRadius * math.sin(labelAngle);
-
-        final textSpan = TextSpan(
-          text: '${(value * 100).toInt()}%',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2,
-                color: Colors.black.withOpacity(0.5),
-              ),
-            ],
-          ),
-        );
-
-        final textPainter = TextPainter(
-          text: textSpan,
-          textDirection: TextDirection.ltr,
-          textAlign: TextAlign.center,
-        );
-
-        textPainter.layout();
-        textPainter.paint(
-          canvas,
-          Offset(
-            labelX - textPainter.width / 2,
-            labelY - textPainter.height / 2,
-          ),
-        );
-      }
-
       startAngle += sweepAngle;
-    });
+    }
+
+    // Draw center circle (optional)
+    canvas.drawCircle(center, radius * 0.5, Paint()..color = Colors.white);
+  }
+
+  Color _getColorForEmotion(String emotion) {
+    if (colors != null && colors!.containsKey(emotion)) {
+      return colors![emotion]!;
+    }
+
+    // Default colors from AppColors
+    switch (emotion.toLowerCase()) {
+      case 'happy':
+        return AppColors.emotionHappy;
+      case 'sad':
+        return AppColors.emotionSad;
+      case 'angry':
+        return AppColors.emotionAngry;
+      case 'fearful':
+      case 'fear':
+        return AppColors.emotionFearful;
+      case 'surprised':
+      case 'surprise':
+        return AppColors.emotionSurprised;
+      case 'disgusted':
+      case 'disgust':
+        return AppColors.emotionDisgusted;
+      case 'neutral':
+        return AppColors.emotionNeutral;
+      case 'frustrated':
+        return AppColors.orange;
+      case 'confused':
+        return AppColors.info;
+      default:
+        return Colors.grey;
+    }
   }
 
   @override

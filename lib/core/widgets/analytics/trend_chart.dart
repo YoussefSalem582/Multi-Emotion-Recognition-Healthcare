@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../models/analytics_data.dart';
 
 /// A chart widget for displaying emotion trends
 class TrendChart extends StatelessWidget {

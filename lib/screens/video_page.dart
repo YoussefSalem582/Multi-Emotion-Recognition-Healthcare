@@ -14,7 +14,19 @@ class _VideoPageState extends State<VideoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Video Analysis'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Video Analysis'),
+        elevation: 0,
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.enhancedVideoAnalysis);
+            },
+            icon: const Icon(Icons.star),
+            label: const Text('Enhanced'),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -32,7 +44,65 @@ class _VideoPageState extends State<VideoPage> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 24),
+
+            // Enhanced Analysis Banner
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primaryContainer.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.new_releases,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Try Enhanced Video Analysis',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Now supporting all social media platforms including YouTube, TikTok, Instagram, and more!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.enhancedVideoAnalysis,
+                      );
+                    },
+                    child: const Text('Try Now'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // Video upload area
             Center(

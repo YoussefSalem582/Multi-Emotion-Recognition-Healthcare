@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/emotion_detection_service.dart';
+import '../models/emotion_data.dart';
 
 class VideoAnalysisPage extends StatefulWidget {
   @override
@@ -27,41 +29,21 @@ class _VideoAnalysisPageState extends State<VideoAnalysisPage>
   String? _videoUrl;
   String _videoSource = 'upload';
 
-  // Simulated analysis data
-  final Map<String, double> _emotionData = {
-    'Happy': 0.45,
-    'Neutral': 0.25,
-    'Confused': 0.15,
-    'Frustrated': 0.10,
-    'Angry': 0.05,
+  // Emotion detection service
+  final EmotionDetectionService _emotionService = EmotionDetectionService();
+
+  // Real analysis data
+  Map<String, double> _emotionData = {
+    'neutral': 0.0,
+    'anger': 0.0,
+    'disgust': 0.0,
+    'fear': 0.0,
+    'joy': 0.0,
+    'sadness': 0.0,
+    'surprise': 0.0,
   };
 
-  final List<Map<String, dynamic>> _emotionTimestamps = [
-    {
-      'time': '00:12',
-      'emotion': 'Happy',
-      'intensity': 0.85,
-      'color': Colors.green,
-    },
-    {
-      'time': '00:47',
-      'emotion': 'Confused',
-      'intensity': 0.70,
-      'color': Colors.blue,
-    },
-    {
-      'time': '01:23',
-      'emotion': 'Frustrated',
-      'intensity': 0.60,
-      'color': Colors.orange,
-    },
-    {
-      'time': '02:05',
-      'emotion': 'Happy',
-      'intensity': 0.75,
-      'color': Colors.green,
-    },
-  ];
+  List<Map<String, dynamic>> _emotionTimestamps = [];
 
   @override
   void initState() {
@@ -190,21 +172,86 @@ class _VideoAnalysisPageState extends State<VideoAnalysisPage>
     }
   }
 
-  void _runAnalysis() {
+  void _runAnalysis() async {
+    // Check if the API is available
+    bool isApiAvailable = await _emotionService.checkHealth();
+    if (!isApiAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Emotion detection service is not available. Please try again later.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isAnalyzing = true;
       _isAnalysisComplete = false;
     });
 
-    // Simulate analysis process
-    Future.delayed(Duration(seconds: 3), () {
-      if (mounted) {
+    try {
+      if (_videoFile != null) {
+        // Use the real emotion detection service
+        final result = await _emotionService.analyzeVideo(_videoFile!);
+
+        // Convert API response to our data format
+        final emotionDistribution = _emotionService.getEmotionDistribution(
+          result,
+        );
+        final List<EmotionData> emotionDataList = _emotionService
+            .convertResponseToEmotionData(result);
+
+        // Update the UI with real data
         setState(() {
+          _emotionData = emotionDistribution;
+
+          // Convert EmotionData to the format expected by the UI
+          _emotionTimestamps =
+              emotionDataList.map((data) {
+                // Format timestamp as MM:SS
+                int minutes = (data.timestamp / 60).floor();
+                int seconds = data.timestamp % 60;
+                String formattedTime =
+                    '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+                return {
+                  'time': formattedTime,
+                  'emotion': data.emotion,
+                  'intensity': data.confidence,
+                  'color': _getEmotionColor(data.emotion),
+                };
+              }).toList();
+
           _isAnalyzing = false;
           _isAnalysisComplete = true;
         });
+      } else if (_videoUrl != null) {
+        // For now, just simulate analysis for URLs
+        // In a real implementation, you would download the video or use a different API endpoint
+        Future.delayed(Duration(seconds: 3), () {
+          if (mounted) {
+            setState(() {
+              _isAnalyzing = false;
+              _isAnalysisComplete = true;
+            });
+          }
+        });
       }
-    });
+    } catch (e) {
+      print('Error analyzing video: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to analyze video: ${e.toString()}'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() {
+        _isAnalyzing = false;
+      });
+    }
   }
 
   @override
@@ -831,19 +878,23 @@ class _VideoAnalysisPageState extends State<VideoAnalysisPage>
   }
 
   Color _getEmotionColor(String emotion) {
-    switch (emotion) {
-      case 'Happy':
+    switch (emotion.toLowerCase()) {
+      case 'joy':
         return Colors.green;
-      case 'Neutral':
+      case 'neutral':
         return Colors.grey;
-      case 'Confused':
+      case 'surprise':
         return Colors.blue;
-      case 'Frustrated':
-        return Colors.orange;
-      case 'Angry':
-        return Colors.red;
-      default:
+      case 'fear':
         return Colors.purple;
+      case 'anger':
+        return Colors.red;
+      case 'sadness':
+        return Colors.indigo;
+      case 'disgust':
+        return Colors.orange;
+      default:
+        return Colors.teal;
     }
   }
 }

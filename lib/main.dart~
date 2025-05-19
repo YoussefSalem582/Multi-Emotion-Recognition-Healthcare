@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'screens/home_page.dart';
-import 'screens/dashboard_page.dart';
-import 'screens/session_review_page.dart';
-import 'screens/recording_page.dart';
 import 'screens/video_analysis_page.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'screens/home_page.dart';
 
 // Theme provider that manages app-wide theme state
 class ThemeProvider with ChangeNotifier {
@@ -29,6 +25,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -39,10 +37,14 @@ class MyApp extends StatelessWidget {
     ).copyWith(
       secondary: Color(0xFF03DAC6),
       tertiary: Color(0xFFEF5350),
-      // Custom colors
+      // Custom colors with better contrast
       surfaceVariant: Color(0xFFE7E0EC),
       primaryContainer: Color(0xFFEADDFF),
       secondaryContainer: Color(0xFFCEF6EC),
+      // Improved text contrast
+      onSurfaceVariant: Color(0xFF49454F),
+      onBackground: Color(0xFF1C1B1F),
+      onSurface: Color(0xFF1C1B1F),
     );
 
     final ColorScheme darkColorScheme = ColorScheme.fromSeed(
@@ -265,6 +267,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MainNavigationScreen extends StatefulWidget {
+  const MainNavigationScreen({super.key});
+
   @override
   _MainNavigationScreenState createState() => _MainNavigationScreenState();
 }
@@ -282,6 +286,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
     RecordingPage(),
     SessionReviewPage(),
   ];
+
+  final List<String> _titles = ['Home', 'Dashboard', 'Recording', 'History'];
 
   @override
   void initState() {
@@ -340,39 +346,45 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
       _themeAnimationController.value = 0;
     }
 
+    // Home screen doesn't need an app bar
+    final bool showAppBar = _currentIndex != 0;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('EmoSense AI'),
-        actions: [
-          AnimatedBuilder(
-            animation: _themeAnimation,
-            builder: (context, child) {
-              return IconButton(
-                icon: AnimatedCrossFade(
-                  firstChild: Icon(Icons.dark_mode),
-                  secondChild: Icon(Icons.light_mode),
-                  crossFadeState:
-                      themeProvider.isDarkMode
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                  duration: Duration(milliseconds: 300),
-                ),
-                onPressed: () => _toggleTheme(themeProvider),
-                tooltip:
-                    themeProvider.isDarkMode
-                        ? 'Switch to Light Mode'
-                        : 'Switch to Dark Mode',
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // Show settings dialog
-            },
-          ),
-        ],
-      ),
+      appBar:
+          showAppBar
+              ? AppBar(
+                title: Text(_titles[_currentIndex]),
+                actions: [
+                  AnimatedBuilder(
+                    animation: _themeAnimation,
+                    builder: (context, child) {
+                      return IconButton(
+                        icon: AnimatedCrossFade(
+                          firstChild: Icon(Icons.dark_mode),
+                          secondChild: Icon(Icons.light_mode),
+                          crossFadeState:
+                              themeProvider.isDarkMode
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                          duration: Duration(milliseconds: 300),
+                        ),
+                        onPressed: () => _toggleTheme(themeProvider),
+                        tooltip:
+                            themeProvider.isDarkMode
+                                ? 'Switch to Light Mode'
+                                : 'Switch to Dark Mode',
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.settings),
+                    onPressed: () {
+                      // Show settings dialog
+                    },
+                  ),
+                ],
+              )
+              : null,
       body: Stack(
         children: [
           _screens[_currentIndex],
@@ -380,22 +392,34 @@ class _MainNavigationScreenState extends State<MainNavigationScreen>
             ThemeModeIndicator(isDarkMode: themeProvider.isDarkMode),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.mic), label: 'Record'),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          NavigationDestination(
+            icon: Icon(Icons.mic_outlined),
+            selectedIcon: Icon(Icons.mic),
+            label: 'Record',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'History',
+          ),
         ],
       ),
     );
@@ -457,150 +481,10 @@ class ThemeModeIndicator extends StatelessWidget {
   }
 }
 
-// Home Page with Navigation
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('EmoSense AI'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // Settings action
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Logo and intro
-              Center(
-                child: Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.sentiment_satisfied_alt,
-                    size: 80,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-              SizedBox(height: 24),
-              Text(
-                'Welcome to EmoSense',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Real-time emotion detection for better customer service',
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 40),
-              // Menu cards
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  children: [
-                    _buildMenuCard(
-                      context,
-                      Icons.dashboard,
-                      'Dashboard',
-                      'View live emotion analysis',
-                      () => Navigator.pushNamed(context, '/dashboard'),
-                    ),
-                    _buildMenuCard(
-                      context,
-                      Icons.mic,
-                      'Record',
-                      'Start a new recording session',
-                      () => Navigator.pushNamed(context, '/recording'),
-                    ),
-                    _buildMenuCard(
-                      context,
-                      Icons.videocam,
-                      'Video Analysis',
-                      'Analyze emotions in videos',
-                      () => Navigator.pushNamed(context, '/videoAnalysis'),
-                    ),
-                    _buildMenuCard(
-                      context,
-                      Icons.history,
-                      'History',
-                      'Review past sessions',
-                      () => Navigator.pushNamed(context, '/sessionReview'),
-                    ),
-                    _buildMenuCard(
-                      context,
-                      Icons.help_outline,
-                      'Help',
-                      'Learn how to use the app',
-                      () {
-                        // Show help dialog
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 40, color: Theme.of(context).primaryColor),
-              SizedBox(height: 12),
-              Text(
-                title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(fontSize: 12),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // Dashboard Page: Real-time Analytics
 class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
   @override
   _DashboardPageState createState() => _DashboardPageState();
 }
@@ -1700,6 +1584,8 @@ class SessionReviewPage extends StatelessWidget {
     },
   ];
 
+  SessionReviewPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1815,6 +1701,8 @@ class SessionReviewPage extends StatelessWidget {
 
 // Recording Page: New session recording
 class RecordingPage extends StatefulWidget {
+  const RecordingPage({super.key});
+
   @override
   _RecordingPageState createState() => _RecordingPageState();
 }

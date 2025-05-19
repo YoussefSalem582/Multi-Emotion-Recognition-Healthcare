@@ -204,7 +204,7 @@ class _HomePageState extends State<HomePage> {
                                 trailing: Switch(
                                   value: isDarkMode,
                                   onChanged: (value) {
-                                    themeProvider.toggleTheme(value);
+                                    themeProvider.toggleTheme();
                                     Navigator.pop(context);
                                   },
                                 ),

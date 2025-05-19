@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage>
               color: Colors.white,
             ),
             onPressed: () {
-              themeProvider.toggleTheme(!isDarkMode);
+              themeProvider.toggleTheme();
             },
           ),
           IconButton(
@@ -218,7 +218,7 @@ class _HomePageState extends State<HomePage>
                             trailing: Switch(
                               value: isDarkMode,
                               onChanged: (value) {
-                                themeProvider.toggleTheme(value);
+                                themeProvider.toggleTheme();
                                 Navigator.pop(context);
                               },
                             ),

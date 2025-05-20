@@ -2,11 +2,9 @@ version: '3'
 
 services:
   emotion-api:
-    build: 
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "5000:5000"
     volumes:
-      - ./:/app
+      - ./emotion_model.pth:/app/emotion_model.pth
     restart: unless-stopped

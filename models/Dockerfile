@@ -14,9 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the model and API code
 COPY emotion_api.py .
+COPY emotion_model.pth .
 
 # Expose the port
 EXPOSE 5000
 
 # Run the API server
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "emotion_api:app"] 
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "emotion_api:app"]
